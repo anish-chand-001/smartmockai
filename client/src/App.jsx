@@ -13,6 +13,7 @@ const App = () => {
   
   useEffect(() => {
     const getUser = async () => {
+      dfd
       try {
         const result = await axios.get(`${ServerUrl}/api/user/current-user`, {
           withCredentials: true,
