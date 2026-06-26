@@ -1,19 +1,60 @@
 import React from "react";
 import { BsRobot } from "react-icons/bs";
 import { IoSparkles } from "react-icons/io5"; // Checked import
-import { FcGoogle } from "react-icons/fc";     // Common standard addition for auth
+import { FcGoogle } from "react-icons/fc"; // Common standard addition for auth
+import { motion } from "motion/react";
+import { signInWithPopup } from "firebase/auth";
 
+import { auth, provider } from "../utils/firebase";
+import axios from "axios";
+import { ServerUrl } from "../App";
+import { useDispatch } from "react-redux";
+import { setUserData } from "../redux/userSlice";
+import { useNavigate } from "react-router-dom";
 const Auth = () => {
-  // Example handler for industry-grade auth integration
-  const handleGoogleLogin = () => {
+  
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+
+  const handleGoogleAuth = async () => {
     // Redirect to your backend OAuth route
-    window.location.href = `${import.meta.env.VITE_API_URL}/api/v1/auth/google`;
+    try {
+      const response = await signInWithPopup(auth, provider);
+      let User = response.user;
+      let name = User.displayName;
+      let email = User.email;
+
+      const result = await axios.post(
+        ServerUrl + "/api/auth/google",
+        { name, email },
+        { withCredentials: true },
+      );
+      if (result.data?.success) {
+        
+        dispatch(setUserData(result.data.user)); 
+        navigate("/");
+      }
+      
+    } catch (error) {
+      if (error.code === 'auth/popup-closed-by-user') {
+      console.warn("User cancelled the login popup flow.");
+      // You can set an optional local UI state error message here to alert the user nicely
+      return; 
+    }
+
+    console.error("Authentication action failed:", error);
+    dispatch(setUserData(null));
+    }
   };
 
   return (
     <div className="w-full min-h-screen bg-[#f3f3f3] flex items-center justify-center px-6 py-20">
-      <div className="w-full max-w-md p-8 rounded-3xl bg-white shadow-2xl border border-gray-200">
-        
+      <motion.div
+        initial={{ opacity: 0, y: -40 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.8 }}
+        className="w-full max-w-md p-8 rounded-3xl bg-white shadow-2xl border border-gray-200"
+      >
         {/* Brand Header */}
         <div className="flex items-center justify-center gap-3 mb-6">
           <div className="bg-black text-white p-2 rounded-lg">
@@ -33,20 +74,22 @@ const Auth = () => {
 
         {/* Action Buttons (What was missing) */}
         <div className="space-y-4">
-          <button
-            onClick={handleGoogleLogin}
-            className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 font-medium py-3 px-4 rounded-xl transition duration-200 active:scale-[0.98]"
+          <motion.button
+            onClick={handleGoogleAuth}
+            whileHover={{ opacity: 0.9, scale: 1.03 }}
+            whileTap={{ opacity: 1, scale: 0.98 }}
+            className="w-full flex items-center justify-center gap-3 bg-gray-800 text-white  shadow-md text-gray-700 font-medium py-3 px-4 rounded-xl transition duration-200 active:scale-[0.98]"
           >
             <FcGoogle size={22} />
             Continue with Google
-          </button>
+          </motion.button>
         </div>
 
         {/* Footer Disclaimers */}
         <p className="text-xs text-center text-gray-400 mt-6 px-4">
           By signing up, you agree to our Terms of Service and Privacy Policy.
         </p>
-      </div>
+      </motion.div>
     </div>
   );
 };
