@@ -11,10 +11,10 @@ import { ServerUrl } from "../App";
 import { useDispatch } from "react-redux";
 import { setUserData } from "../redux/userSlice";
 import { useNavigate } from "react-router-dom";
-const Auth = () => {
-  
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+
+const Auth = ({ isModel = false }) => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const handleGoogleAuth = async () => {
     // Redirect to your backend OAuth route
@@ -30,30 +30,35 @@ const Auth = () => {
         { withCredentials: true },
       );
       if (result.data?.success) {
-        
-        dispatch(setUserData(result.data.user)); 
+        dispatch(setUserData(result.data.user));
         navigate("/");
       }
-      
     } catch (error) {
-      if (error.code === 'auth/popup-closed-by-user') {
-      console.warn("User cancelled the login popup flow.");
-      // You can set an optional local UI state error message here to alert the user nicely
-      return; 
-    }
+      if (error.code === "auth/popup-closed-by-user") {
+        console.warn("User cancelled the login popup flow.");
+        // You can set an optional local UI state error message here to alert the user nicely
+        return;
+      }
 
-    console.error("Authentication action failed:", error);
-    dispatch(setUserData(null));
+      console.error("Authentication action failed:", error);
+      dispatch(setUserData(null));
     }
   };
 
   return (
-    <div className="w-full min-h-screen bg-[#f3f3f3] flex items-center justify-center px-6 py-20">
+    <div
+      className={`
+        w-full 
+        ${isModel ? "py-4" : "min-h-screen bg-[#f3f3f3] flex items-center justify-center px-6 py-20 "}`}
+    >
       <motion.div
         initial={{ opacity: 0, y: -40 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
-        className="w-full max-w-md p-8 rounded-3xl bg-white shadow-2xl border border-gray-200"
+        className={`w-full 
+          ${isModel ? "max-w-md p-8 rounded-3xl" : "max-w-lg p-12 rounded-[32px] "}
+          bg-white shadow-2xl border border-gray-200
+          `}
       >
         {/* Brand Header */}
         <div className="flex items-center justify-center gap-3 mb-6">

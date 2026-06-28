@@ -66,13 +66,12 @@ export const googleAuth = async (req, res) => {
  */
 export const logout = async (req, res) => {
   try {
-    const isProduction = process.env.NODE_ENV === "production";
-
+  
     // 1. Clear the authentication cookie
     res.clearCookie("token", {
       http: true,
       secure: false,
-      sameSite: strict,
+      sameSite: "strict",
     });
 
     // 2. Return a standardized success response
