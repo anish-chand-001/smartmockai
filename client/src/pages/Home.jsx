@@ -29,6 +29,7 @@ import creditImg from "../assets/credit.png";
 import resumeImg from "../assets/resume.png";
 import pdfImg from "../assets/pdf.png";
 import analyticsImg from "../assets/history.png";
+import Footer from "../components/Footer";
 
 const Home = () => {
   const { userData } = useSelector((state) => state.user);
@@ -298,6 +299,8 @@ const Home = () => {
         </div>
       </div>
       {showAuth && <AuthModel onClose={() => setShowAuth(false)} />}
+
+        <Footer />
     </div>
   );
 };
