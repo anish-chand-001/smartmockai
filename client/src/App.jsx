@@ -7,7 +7,7 @@ import { useDispatch } from "react-redux";
 import { setUserData } from "./redux/userSlice";
 import InterviewPage from './pages/InterviewPage';
 
-export const ServerUrl = "http://localhost:8000";
+export const ServerUrl = "http://localhost:5000";
 
 const App = () => {
   const dispatch = useDispatch();

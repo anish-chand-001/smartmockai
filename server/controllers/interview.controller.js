@@ -1,6 +1,7 @@
 import fs from "fs";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import { askAI } from "./../services/openRouter.services.js";
+import User from "../models/user.model.js";
 
 export const analyzeResume = async (req, res) => {
   try {
@@ -66,10 +67,47 @@ export const analyzeResume = async (req, res) => {
       try {
         await fs.promises.unlink(req.file.path);
       } catch (unlinkError) {
-        console.error("Failed to delete file during error cleanup:", unlinkError);
+        console.error(
+          "Failed to delete file during error cleanup:",
+          unlinkError,
+        );
       }
     }
 
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const generateQuestions = async (req, res) => {
+  try {
+    const { role, experience, mode, resumeText, projects, skills } = req.body;
+
+    if (!role || !experience || !mode) {
+      return res.status(400).json({
+        message: "Role, experience, and mode are required",
+      });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.credits < 50) {
+      return res.status(403).json({
+        message:
+          "Not enough credits. minimum 50 credits required to generate questions.",
+      });
+    }
+
+    const projectTexT =
+      Array.isArray(projects) && projects.length ? projects.join(", ") : "None";
+    const skillsText =
+       Array.isArray(skills) && skills.length ? skills.join(", ") : "None";
+
+      
+  } catch (error) {
+    console.error("Error generating questions:", error);
     return res.status(500).json({ message: error.message });
   }
 };

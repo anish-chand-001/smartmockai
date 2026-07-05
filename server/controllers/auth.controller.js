@@ -30,7 +30,7 @@ export const googleAuth = async (req, res) => {
 
 
     res.cookie("token", token, {
-      http: true,
+      httpOnly: true,
       secure: false,
       sameSite: "strict",
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
@@ -69,7 +69,7 @@ export const logout = async (req, res) => {
   
     // 1. Clear the authentication cookie
     res.clearCookie("token", {
-      http: true,
+      httpOnly: true,
       secure: false,
       sameSite: "strict",
     });

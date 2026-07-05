@@ -1,11 +1,12 @@
 import multer from 'multer'
 
+console.log("--> Request hit multer middleware!");
 const storage =multer.diskStorage(
     {
         destination:function(req,file,callback){
             callback(null,"public")
         },
-        filename:function(req,file,cb){
+        filename:function(req,file,callback){
             const filename = Date.now() +"-" + file.originalname;
             callback(null,filename)
         }

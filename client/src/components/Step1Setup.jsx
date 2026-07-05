@@ -1,5 +1,5 @@
 import React from "react";
-import { motion, scale } from "motion/react";
+import { motion } from "motion/react";
 import {
   FaUserTie,
   FaBriefcase,
@@ -8,11 +8,15 @@ import {
   FaChartLine,
 } from "react-icons/fa";
 import { useState } from "react";
+import axios  from "axios";
+import { ServerUrl } from "./../App";
+import { linkWithCredential } from "firebase/auth";
+import { initializeApp } from 'firebase/app';
 
 const Step1Setup = ({ onstart }) => {
   const [role, setRole] = useState("");
   const [experience, setExperience] = useState("");
-  const [mode, setMode] = useState("");
+  const [mode, setMode] = useState("Technical");
 
   const [resumeFile, setResumeFile] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -22,6 +26,33 @@ const Step1Setup = ({ onstart }) => {
   const [analysisDone, setAnalysisDone] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
 
+  const handleUploadResume = async () => {
+    if (!resumeFile || analyzing) {
+      return;
+    }
+    setAnalyzing(true);
+    const formData = new FormData();
+    formData.append("resume", resumeFile);
+
+    try {
+      const result = await axios.post(ServerUrl + "/api/interview/resume", formData, {
+        withCredentials: true,
+      });
+      console.log("File being sent:", resumeFile);
+      console.log(result.data);
+
+      setRole(result.data.role || "");
+      setExperience(result.data.experience || "");
+      setProjects(result.data.projects || []);
+      setSkills(result.data.skills || []);
+      setResumeText(result.data.resumeText || "");
+      setAnalysisDone(true);
+      setAnalyzing(false);
+    } catch (error) {
+      console.log(error);
+      
+    }
+  };
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -143,6 +174,7 @@ const Step1Setup = ({ onstart }) => {
                   {resumeFile && (
                     <motion.button
                       whileHover={{ scale: 1.02 }}
+                      onClick={(e)=>{e.stopPropagation();handleUploadResume()}}
                       className="mt-4 bg-gray-900 text-white px-5 py-2 rounded-lg hover:bg-gray-800
                       transition"
                     >
@@ -151,20 +183,54 @@ const Step1Setup = ({ onstart }) => {
                   )}
                 </motion.div>
               )}
-
             </div>
-              <div className="relative">
 
+            {analysisDone && (
+              <motion.div
+              initial={{ opacity: 0,y:20 }}
+              animate={{ opacity: 1,y:0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-gray-50 bordre border-gray-200 rounded-xl p-5 space-y-4"
+              >
+                <h3 className="text-lg font-semibold text-gray-800">
+                  Resume Analysis Result 
+                </h3>
+                {projects.length > 0 && (
+                  <div>
+                    <p className="font-medium text-gray-700 mb-1 ">Projects:</p>
+                    <ul className="list-disc list-inside text-gray-600 space-y-1">
+                      {projects.map((project, index) => (
+                        <li key={index}>{project}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                {skills.length > 0 && (
+                  <div>
+                    <p className="font-medium text-gray-700 mb-1 ">skills:</p>
+                    <ul className="flex flex-wrap gap-2 ">
+                      {skills.map((skills, index) => (
+                        <li key={index}
+                        className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm"
+                        >{skills}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+              </motion.div>
+            )}
+            <div className="relative">
               <motion.button
                 disabled={!role || !experience}
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.94 }}
                 className=" w-full disabled:bg-gray-600 bg-green-600 hover:bg-green-700 text-white py-3 
                 rounded-full text-lg font-semibold transition duration-300 shadow-md"
-                >
+              >
                 Start Interview
               </motion.button>
-                </div>
+            </div>
           </div>
         </motion.div>
       </div>

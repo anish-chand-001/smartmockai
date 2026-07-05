@@ -18,5 +18,6 @@ const auth = getAuth(app);
 
 // Google Provider
 const provider = new GoogleAuthProvider();
+provider.setCustomParameters({ prompt: 'select_account' });
 
 export { auth, provider };

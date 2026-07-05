@@ -7,7 +7,9 @@ import User from "../models/user.model.js";
  * @param   {Object} res - Express response object
  * @param   {Function} next - Express next middleware function
  */
+
 export const verifyToken = async (req, res, next) => {
+  console.log("--> Request hit verifyToken middleware!");
   try {
     // 1. Extract token from cookies
     const token = req.cookies.token;
@@ -22,9 +24,10 @@ export const verifyToken = async (req, res, next) => {
     // 2. Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    console.log(decoded);
     // 3. Find the user associated with the token and attach to request
     // .select("-password") ensures we don't carry the hashed password around in memory unnecessarily
-    const user = await User.findById(decoded.id).select("-password");
+    const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
       return res.status(404).json({
@@ -43,12 +46,10 @@ export const verifyToken = async (req, res, next) => {
 
     // Catch specific JWT errors for clearer client feedback
     if (error.name === "TokenExpiredError") {
-      return res
-        .status(401)
-        .json({
-          success: false,
-          message: "Session expired. Please log in again.",
-        });
+      return res.status(401).json({
+        success: false,
+        message: "Session expired. Please log in again.",
+      });
     }
     if (error.name === "JsonWebTokenError") {
       return res
