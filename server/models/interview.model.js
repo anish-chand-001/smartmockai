@@ -13,7 +13,7 @@ const questionSchema = new mongoose.Schema(
     },
     answer: {
       type: String,
-      required: true,
+      default: "",
       trim: true,
     },
     difficulty: {
@@ -83,7 +83,20 @@ const interviewSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    question: [questionSchema],
+    projects: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+
+    skills: [
+      {
+        type: String,
+        trim: true,
+      },
+    ],
+    questions: [questionSchema],
     finalScore: {
       type: Number,
       default: 0,

@@ -23,12 +23,12 @@ export const analyzeResume = async (req, res) => {
     const uint8Array = new Uint8Array(fileBuffer);
 
     // Node environment patch for PDF.js legacy build if needed
-    const pdf = await pdfjsLib.getDocument({ 
+    const pdf = await pdfjsLib.getDocument({
       data: uint8Array,
       useSystemFonts: true,
-      disableFontFace: true 
+      disableFontFace: true,
     }).promise;
-    
+
     let resumeText = "";
 
     // Extract text from all pages cleanly
@@ -62,11 +62,14 @@ export const analyzeResume = async (req, res) => {
     ];
 
     const aiResponse = await askAI(messages);
-    
+
     // SAFE JSON PARSING: Strips out markdown ticks if the AI returns them anyway
     let cleanedResponse = aiResponse.trim();
     if (cleanedResponse.startsWith("```")) {
-      cleanedResponse = cleanedResponse.replace(/^```json\s*/i, "").replace(/```$/, "").trim();
+      cleanedResponse = cleanedResponse
+        .replace(/^```json\s*/i, "")
+        .replace(/```$/, "")
+        .trim();
     }
 
     let parsed;
@@ -88,7 +91,6 @@ export const analyzeResume = async (req, res) => {
       skills: parsed.skills || [],
       resumeText,
     });
-    
   } catch (error) {
     console.error("Error analyzing resume:", error);
 
@@ -97,7 +99,10 @@ export const analyzeResume = async (req, res) => {
       try {
         await fs.promises.unlink(req.file.path);
       } catch (unlinkError) {
-        console.error("Failed to delete file during error cleanup:", unlinkError);
+        console.error(
+          "Failed to delete file during error cleanup:",
+          unlinkError,
+        );
       }
     }
 
@@ -124,7 +129,7 @@ export const generateQuestions = async (req, res) => {
       });
     }
 
-    if (!req.user || !req.user.userId ) {
+    if (!req.user || !req.user.userId) {
       return res.status(401).json({
         success: false,
         message: "Unauthorized. Missing user session token.",
@@ -143,12 +148,15 @@ export const generateQuestions = async (req, res) => {
       console.log("not credits");
       return res.status(403).json({
         success: false,
-        message: "Not enough credits. Minimum 50 credits required to generate questions.",
+        message:
+          "Not enough credits. Minimum 50 credits required to generate questions.",
       });
     }
 
-    const projectText = Array.isArray(projects) && projects.length ? projects.join(", ") : "None";
-    const skillsText = Array.isArray(skills) && skills.length ? skills.join(", ") : "None";
+    const projectText =
+      Array.isArray(projects) && projects.length ? projects.join(", ") : "None";
+    const skillsText =
+      Array.isArray(skills) && skills.length ? skills.join(", ") : "None";
     const safeResume = resumeText?.trim() || "None";
 
     const userPrompt = `
@@ -218,6 +226,7 @@ Make questions based on the candidate’s role, experience, interviewMode, proje
     user.credits -= 50;
     await user.save();
 
+
     // Notice: altered inner array label from 'questions' to 'question' to maintain database standard structure integrity
     const newInterview = await interview.create({
       userId: user._id,
@@ -228,11 +237,13 @@ Make questions based on the candidate’s role, experience, interviewMode, proje
       skills,
       resumeText: safeResume,
       questions: questionsArray.map((question, index) => ({
-        question: question, 
-        difficulty: ["easy", "easy", "medium", "medium", "hard"][index],
+        question,
+        difficulty: ["Easy", "Easy", "Medium", "Medium", "Hard"][index],
         timeLimit: [60, 60, 90, 90, 120][index],
       })),
     });
+
+    
 
     return res.status(200).json({
       success: true,
@@ -411,28 +422,26 @@ export const finishInterview = async (req, res) => {
     const avgCorrectness =
       totalQuestions > 0 ? Math.round(totalCorrectness / totalQuestions) : 0;
 
+    interview.finalScore = finalScore;
+    interview.status = "completed";
 
-      interview.finalScore = finalScore;
-      interview.status = "completed";
+    await currentInterview.save();
 
-      await currentInterview.save();
-
-      return res.status(200).json({
-        success: true,
-        finalScore,
-        Confidence,
-        Communication,
-        Correctness,
-        questionWiseScores: currentInterview.questions.map((q) => ({
-          question: q.questions ,
-          score: q.score || 0,
-          confidence: q.confidence || 0,
-          communication: q.communication || 0,
-          correctness: q.correctness || 0,
-          feedback: q.feedback || "No feedback provided.",
-        })),
-      });
-
+    return res.status(200).json({
+      success: true,
+      finalScore,
+      Confidence,
+      Communication,
+      Correctness,
+      questionWiseScores: currentInterview.questions.map((q) => ({
+        question: q.questions,
+        score: q.score || 0,
+        confidence: q.confidence || 0,
+        communication: q.communication || 0,
+        correctness: q.correctness || 0,
+        feedback: q.feedback || "No feedback provided.",
+      })),
+    });
   } catch (error) {
     console.error("Error finishing interview:", error);
     return res.status(500).json({

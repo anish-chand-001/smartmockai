@@ -6,7 +6,6 @@ import Auth from '../pages/Auth'
 const AuthModel = ({onClose}) => {
     const {userData} = useSelector((state) => state.user)
     
-    
     useEffect(() => {
         if(userData){
             onClose()
