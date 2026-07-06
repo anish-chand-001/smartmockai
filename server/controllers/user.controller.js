@@ -3,13 +3,13 @@ import User from "../models/user.model.js"
 
 /**
  * @desc    Get currently authenticated user details
- * @route   GET /api/auth/me
+ * @route   GET /api/user/current-user
  * @access  Private (Requires protect middleware)
  */
 export const getCurrentUser = async (req, res) => {
     try {
         // Find by ID using the ID parsed from the middleware token verification
-        const user = await User.findById(req.userId).select("-password");
+        const user = req.user;
 
         if (!user) {
             return res.status(404).json({

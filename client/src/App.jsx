@@ -1,4 +1,4 @@
-import React, { useEffect } from "react"; // Fixed: Added useEffect to the import statement
+import React, { useEffect } from "react"; 
 import { Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Auth from "./pages/Auth";
@@ -19,7 +19,6 @@ const App = () => {
           withCredentials: true,
         });
         
-       
         if (result.data?.success) {
           dispatch(setUserData(result.data.user));
         }
@@ -29,6 +28,7 @@ const App = () => {
       }
     };
 
+    getUser(); // <-- FIX: Calling the function so it actually runs on refresh!
     
   }, [dispatch]);
 
@@ -37,7 +37,6 @@ const App = () => {
       <Route path="/" element={<Home />} />
       <Route path="/auth" element={<Auth />} />
       <Route path="/interview" element={<InterviewPage />} />
-      
     </Routes>
   );
 };

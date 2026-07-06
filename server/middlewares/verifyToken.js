@@ -9,9 +9,7 @@ import User from "../models/user.model.js";
  */
 
 export const verifyToken = async (req, res, next) => {
-  console.log("--> Request hit verifyToken middleware!");
   try {
-    // 1. Extract token from cookies
     const token = req.cookies.token;
 
     if (!token) {
@@ -21,12 +19,8 @@ export const verifyToken = async (req, res, next) => {
       });
     }
 
-    // 2. Verify the token
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-    console.log(decoded);
-    // 3. Find the user associated with the token and attach to request
-    // .select("-password") ensures we don't carry the hashed password around in memory unnecessarily
     const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
@@ -36,8 +30,8 @@ export const verifyToken = async (req, res, next) => {
       });
     }
 
-    // 4. Attach user payload to the request object
     req.user = user;
+    req.user.userId = user._id.toString();
 
     // 5. Pass control to the next controller function
     next();

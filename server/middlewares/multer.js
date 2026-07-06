@@ -1,6 +1,5 @@
 import multer from 'multer'
 
-console.log("--> Request hit multer middleware!");
 const storage =multer.diskStorage(
     {
         destination:function(req,file,callback){
