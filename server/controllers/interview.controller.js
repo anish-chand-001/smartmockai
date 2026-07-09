@@ -381,7 +381,6 @@ Answer: ${answer}
     });
   }
 };
-
 /**
  * @desc    Finalize the interview session and lock results
  * @route   POST /api/interview/finish
@@ -390,6 +389,8 @@ Answer: ${answer}
 export const finishInterview = async (req, res) => {
   try {
     const { interviewId } = req.body;
+    
+    // 1. Find the specific document instance
     const currentInterview = await interview.findById(interviewId);
 
     if (!currentInterview) {
@@ -406,7 +407,8 @@ export const finishInterview = async (req, res) => {
     let totalCommunication = 0;
     let totalCorrectness = 0;
 
-    interview.questions.forEach((q) => {
+    // FIX 1: Loop over 'currentInterview.questions', NOT the model 'interview'
+    currentInterview.questions.forEach((q) => {
       totalScore += q.score || 0;
       totalConfidence += q.confidence || 0;
       totalCommunication += q.communication || 0;
@@ -422,19 +424,22 @@ export const finishInterview = async (req, res) => {
     const avgCorrectness =
       totalQuestions > 0 ? Math.round(totalCorrectness / totalQuestions) : 0;
 
-    interview.finalScore = finalScore;
-    interview.status = "completed";
+    // FIX 2: Assign properties to the fetched document instance 'currentInterview'
+    currentInterview.finalScore = finalScore;
+    currentInterview.status = "completed";
 
+    // Save the changes back to MongoDB
     await currentInterview.save();
 
+    // FIX 3: Reference the correct calculated avg variables in the payload
     return res.status(200).json({
       success: true,
       finalScore,
-      Confidence,
-      Communication,
-      Correctness,
+      avgConfidence,     // Changed from capital 'Confidence'
+      avgCommunication,  // Changed from capital 'Communication'
+      avgCorrectness,    // Changed from capital 'Correctness'
       questionWiseScores: currentInterview.questions.map((q) => ({
-        question: q.questions,
+        question: q.question || q.questions, // Fallback safety for field names
         score: q.score || 0,
         confidence: q.confidence || 0,
         communication: q.communication || 0,

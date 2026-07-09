@@ -1,0 +1,83 @@
+[33mcommit bd73bba8453e698c601e6a4603a831a13f890cf6[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Mon Jul 6 18:44:38 2026 +0530
+
+    interview page and voice feature add
+
+[33mcommit 8127538182d40373f122bf9a0007d62e1bdb63bb[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Mon Jul 6 07:48:51 2026 +0530
+
+    start interview feature add
+
+[33mcommit eeff5015c67ffa224d3550c3d01d81d393106aa5[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Sun Jul 5 10:56:08 2026 +0530
+
+    analyze resume feature
+
+[33mcommit 12327d5b31d76ed563b6c86940cf296d27068ebd[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Tue Jun 30 12:19:01 2026 +0530
+
+    Add Step1Setup.jsx initial interview component
+
+[33mcommit c618fa1a9ca7ecc10c7a158c21c7dbd02dfb63f4[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Mon Jun 29 11:55:41 2026 +0530
+
+    landing page update
+
+[33mcommit 821edcce9187543b8ad3658053f87d3ab01e547c[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Sun Jun 28 17:55:15 2026 +0530
+
+    add landing page
+
+[33mcommit 0fe396c4c2beb1e08f7799f884d029568bee419c[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Fri Jun 26 19:16:02 2026 +0530
+
+    user signin with google feature
+
+[33mcommit 6329df7b9133eec8f1da9bef06a699123aec1ff2[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Fri Jun 26 19:14:20 2026 +0530
+
+    user signin with google feature
+
+[33mcommit 683fd27ae116343d761410a4f46ad448626a5362[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Fri Jun 26 18:59:06 2026 +0530
+
+    Delete client/.env
+
+[33mcommit 251e19b8a48b9ee5f3467e7511347009144da122[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Fri Jun 26 18:57:04 2026 +0530
+
+    user signin with google feature
+
+[33mcommit 9869b9ab2786d1c9b2fcd620069f82360d083571[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Fri Jun 26 18:29:22 2026 +0530
+
+    updated
+
+[33mcommit 41e9d9f89630cd1a2d3afd025ac4d53ddbbf6658[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Fri Jun 26 18:18:25 2026 +0530
+
+    user signup with google setup
+
+[33mcommit e9f4f058ae5540f6714cebea1aa1ef80ad28411b[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Thu Jun 25 20:23:21 2026 +0530
+
+    frontend setup done
+
+[33mcommit 9388d5d47385238d074dbca8ec110b4a3fffa2ba[m
+Author: Anish Chand <anishchand.data@gmail.com>
+Date:   Thu Jun 25 19:39:32 2026 +0530
+
+    projects file  setup and libraries installations

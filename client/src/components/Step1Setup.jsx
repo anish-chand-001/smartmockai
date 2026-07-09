@@ -17,25 +17,33 @@ import { useDispatch } from "react-redux";
 import { setUserData } from "../redux/userSlice";
 
 const Step1Setup = ({ onstart }) => {
+  // --- REDUX STATE & DISPATCH ---
   const { userData } = useSelector((state) => state.user);
   const dispatch = useDispatch();
+
+  // --- FORM STATE ---
   const [role, setRole] = useState("");
   const [experience, setExperience] = useState("");
   const [mode, setMode] = useState("Technical");
 
+  // --- RESUME UPLOAD & ANALYSIS STATE ---
   const [resumeFile, setResumeFile] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [projects, setProjects] = useState([]);
-  const [skills, setSkills] = useState([]);
-  const [resumeText, setResumeText] = useState("");
-  const [analysisDone, setAnalysisDone] = useState(false);
-  const [analyzing, setAnalyzing] = useState(false);
+  const [loading, setLoading] = useState(false); // Controls the "Start Interview" loading state
+  const [projects, setProjects] = useState([]);   // Stores extracted projects from resume
+  const [skills, setSkills] = useState([]);       // Stores extracted skills from resume
+  const [resumeText, setResumeText] = useState(""); // Stores raw text from parsed resume
+  const [analysisDone, setAnalysisDone] = useState(false); // Toggles view from upload dropzone to result box
+  const [analyzing, setAnalyzing] = useState(false); // Controls the "Analyze Resume" loading state
 
+  // --- HANDLER: UPLOAD AND PARSE RESUME ---
   const handleUploadResume = async () => {
+    // Prevent execution if no file is chosen or if an upload is already in progress
     if (!resumeFile || analyzing) {
       return;
     }
     setAnalyzing(true);
+    
+    // Append the file data into standard FormData for backend parsing
     const formData = new FormData();
     formData.append("resume", resumeFile);
 
@@ -44,12 +52,13 @@ const Step1Setup = ({ onstart }) => {
         ServerUrl + "/api/interview/resume",
         formData,
         {
-          withCredentials: true,
+          withCredentials: true, // Required if your backend handles sessions via cookies
         },
       );
       console.log("File being sent:", resumeFile);
       console.log(result.data);
 
+      // Auto-fill state fields using AI extracted data from the server response
       setRole(result.data.role || "");
       setExperience(result.data.experience || "");
       setProjects(result.data.projects || []);
@@ -59,13 +68,15 @@ const Step1Setup = ({ onstart }) => {
       setAnalyzing(false);
     } catch (error) {
       console.log(error);
+      setAnalyzing(false); 
     }
   };
 
+  // --- HANDLER: INITIALIZE INTERVIEW & FETCH QUESTIONS ---
   const handleStartInterview = async (req, res) => {
     setLoading(true);
-    // const token = userData?.token;
     try {
+      // Send setup preferences to backend to generate tailored interview questions
       const result = await axios.post(
         ServerUrl + "/api/interview/generate-questions",
         {
@@ -82,27 +93,34 @@ const Step1Setup = ({ onstart }) => {
       );
       console.log(result.data);
 
+      // If user profile exists, update credit count balance in Redux store
       if (userData) {
         dispatch(
           setUserData({ ...userData, credits: result.data.creditsLeft }),
         );
       }
       setLoading(false);
+      
+      // Callback to parent component supplying the generated interview bundle data
       onstart(result.data);
     } catch (error) {
       console.log(error);
       setLoading(false);
     }
   };
+
   return (
+    // Outer Container (Page Wrapper with Framer-Motion Fade-In Animation)
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
       className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200 px-4 "
     >
+      {/* Main Split-Screen Panel (Grid Layout) */}
       <div className="w-full max-w-6xl bg-white rounded-3xl shadow-2xl grid md:grid-cols-2 overflow-hidden ">
-        {/*  left side */}
+        
+        {/* === LEFT SIDE: INFORMATION & BRANDING PANEL === */}
         <motion.div
           initial={{ x: -80, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
@@ -117,6 +135,7 @@ const Step1Setup = ({ onstart }) => {
             communication, technical skills and confidence
           </p>
 
+          {/* Feature List Items with Staggered Slide-In Animations */}
           <div className="space-y-5">
             {[
               {
@@ -147,7 +166,7 @@ const Step1Setup = ({ onstart }) => {
           </div>
         </motion.div>
 
-        {/* right side */}
+        {/* === RIGHT SIDE: INTERVIEW CONFIGURATION FORM === */}
         <motion.div
           initial={{ x: 80, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
@@ -158,6 +177,8 @@ const Step1Setup = ({ onstart }) => {
             Interview SetUp
           </h2>
           <div className="space-y-6">
+            
+            {/* Input: Target Role */}
             <div className="relative">
               <FaUserTie className="absolute top-4 left-4 text-gray-400" />
               <input
@@ -168,6 +189,8 @@ const Step1Setup = ({ onstart }) => {
                 value={role}
               />
             </div>
+            
+            {/* Input: Target Experience level */}
             <div className="relative">
               <FaBriefcase className="absolute top-4 left-4 text-gray-400" />
               <input
@@ -178,6 +201,8 @@ const Step1Setup = ({ onstart }) => {
                 value={experience}
               />
             </div>
+            
+            {/* Dropdown: Interview Type (Technical vs HR) */}
             <div className="relative">
               <select
                 value={mode}
@@ -188,6 +213,8 @@ const Step1Setup = ({ onstart }) => {
                 <option value="HR">HR Interview</option>
               </select>
             </div>
+            
+            {/* Upload Zone: Hidden native file input triggered by a styled wrapper div */}
             <div className="relative">
               {!analysisDone && (
                 <motion.div
@@ -212,11 +239,12 @@ const Step1Setup = ({ onstart }) => {
                       : "Click to upload resume (optional)"}
                   </p>
 
+                  {/* Analyze Trigger Button: Only renders once a valid file is queued */}
                   {resumeFile && (
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       onClick={(e) => {
-                        e.stopPropagation();
+                        e.stopPropagation(); // Prevents clicking the button from re-triggering file picker dialog
                         handleUploadResume();
                       }}
                       className="mt-4 bg-gray-900 text-white px-5 py-2 rounded-lg hover:bg-gray-800
@@ -229,6 +257,7 @@ const Step1Setup = ({ onstart }) => {
               )}
             </div>
 
+            {/* Results Panel: Conditionally maps parsed payload data dynamically after successful analysis */}
             {analysisDone && (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -239,6 +268,8 @@ const Step1Setup = ({ onstart }) => {
                 <h3 className="text-lg font-semibold text-gray-800">
                   Resume Analysis Result
                 </h3>
+                
+                {/* List Extracted Projects */}
                 {projects.length > 0 && (
                   <div>
                     <p className="font-medium text-gray-700 mb-1 ">Projects:</p>
@@ -249,6 +280,8 @@ const Step1Setup = ({ onstart }) => {
                     </ul>
                   </div>
                 )}
+                
+                {/* Badge Pills for Extracted Skills */}
                 {skills.length > 0 && (
                   <div>
                     <p className="font-medium text-gray-700 mb-1 ">skills:</p>
@@ -266,10 +299,12 @@ const Step1Setup = ({ onstart }) => {
                 )}
               </motion.div>
             )}
+            
+            {/* CTA Button: Submits payload to initiate global session flow */}
             <div className="relative">
               <motion.button
                 onClick={handleStartInterview}
-                disabled={!role || !experience || loading}
+                disabled={!role || !experience || loading} // Simple form validation guardrail
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.94 }}
                 className=" w-full disabled:bg-gray-600 bg-green-600 hover:bg-green-700 text-white py-3 
