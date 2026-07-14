@@ -4,6 +4,8 @@ import {
   analyzeResume,
   finishInterview,
   generateQuestions,
+  getInterviewReport,
+  getMyInterview,
   submitAnswers,
 } from "../controllers/interview.controller.js";
 import { upload } from "../middlewares/multer.js";
@@ -22,5 +24,9 @@ interviewRouter.post("/generate-questions", verifyToken, generateQuestions);
 interviewRouter.post("/submit-answer", verifyToken, submitAnswers);
 
 interviewRouter.post("/finish", verifyToken, finishInterview);
+
+interviewRouter.get("/get-interview", verifyToken, getMyInterview);
+
+interviewRouter.get("/report/:id", verifyToken, getInterviewReport);
 
 export default interviewRouter;

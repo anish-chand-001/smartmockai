@@ -2,8 +2,7 @@ import fs from "fs";
 import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
 import { askAI } from "./../services/openRouter.services.js";
 import User from "../models/user.model.js";
-import interview from "../models/interview.model.js";
-
+import Interview from "../models/interview.model.js";
 /**
  * @desc    Analyze uploaded resume PDF and extract structured details
  * @route   POST /api/interview/resume  <-- Make sure this matches your Express router exactly!
@@ -226,9 +225,8 @@ Make questions based on the candidate’s role, experience, interviewMode, proje
     user.credits -= 50;
     await user.save();
 
-
     // Notice: altered inner array label from 'questions' to 'question' to maintain database standard structure integrity
-    const newInterview = await interview.create({
+    const newInterview = await Interview.create({
       userId: user._id,
       role,
       experience,
@@ -242,8 +240,6 @@ Make questions based on the candidate’s role, experience, interviewMode, proje
         timeLimit: [60, 60, 90, 90, 120][index],
       })),
     });
-
-    
 
     return res.status(200).json({
       success: true,
@@ -389,7 +385,7 @@ Answer: ${answer}
 export const finishInterview = async (req, res) => {
   try {
     const { interviewId } = req.body;
-    
+
     // 1. Find the specific document instance
     const currentInterview = await interview.findById(interviewId);
 
@@ -435,9 +431,9 @@ export const finishInterview = async (req, res) => {
     return res.status(200).json({
       success: true,
       finalScore,
-      avgConfidence,     // Changed from capital 'Confidence'
-      avgCommunication,  // Changed from capital 'Communication'
-      avgCorrectness,    // Changed from capital 'Correctness'
+      avgConfidence, // Changed from capital 'Confidence'
+      avgCommunication, // Changed from capital 'Communication'
+      avgCorrectness, // Changed from capital 'Correctness'
       questionWiseScores: currentInterview.questions.map((q) => ({
         question: q.question || q.questions, // Fallback safety for field names
         score: q.score || 0,
@@ -452,6 +448,67 @@ export const finishInterview = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: error.message || "Server error.",
+    });
+  }
+};
+
+export const getMyInterview = async (req, res) => {
+  try {
+    const interviews = await Interview.find({ userId: req.user.userId })
+      .sort({ createdAt: -1 })
+      .select("role experience mode finalScore status createdAt ");
+
+    return res.status(200).json(interviews);
+  } catch (error) {
+    console.error("Error failed to find currentUser Interview:", error);
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server error.",
+    });
+  }
+};
+
+export const getInterviewReport = async (req, res) => {
+  try {
+    const interview = await Interview.findById(req.params.id);
+
+    if (!interview) {
+      return res.status(404).json({
+        message: "Interview not found",
+      });
+    }
+
+    const totalQuestions = interview.questions.length;
+
+    let totalConfidence = 0;
+    let totalCommunication = 0;
+    let totalCorrectness = 0;
+
+    interview.questions.forEach((q) => {
+      totalConfidence += q.confidence || 0;
+      totalCommunication += q.communication || 0;
+      totalCorrectness += q.correctness || 0;
+    });
+
+    const avgConfidence =
+      totalQuestions > 0 ? totalConfidence / totalQuestions : 0;
+
+    const avgCommunication =
+      totalQuestions > 0 ? totalCommunication / totalQuestions : 0;
+
+    const avgCorrectness =
+      totalQuestions > 0 ? totalCorrectness / totalQuestions : 0;
+
+    return res.json({
+      finalScore: interview.finalScore,
+      confidence: Number(avgConfidence.toFixed(1)),
+      communication: Number(avgCommunication.toFixed(1)),
+      correctness: Number(avgCorrectness.toFixed(1)),
+      questionWiseScore: interview.questions,
+    });
+  } catch (error) {
+    return res.status(500).json({
+      message: `Failed to fetch interview report: ${error.message}`,
     });
   }
 };
