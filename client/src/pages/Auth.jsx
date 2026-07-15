@@ -8,7 +8,7 @@ import { motion } from "motion/react";
 
 // --- Firebase Authentication SDK ---
 import { signInWithPopup } from "firebase/auth";
-import { auth, provider } from "../utils/firebase";
+import { auth, provider } from "../utils/Firebase";
 
 // --- API Client & Configuration ---
 import axios from "axios";
