@@ -4,7 +4,8 @@ import { FaArrowLeft } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { buildStyles, CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
-// IMPORT FIX: Added AreaChart and XAxis
+import jsPDF from 'jspdf'
+
 import {
   Area,
   AreaChart,
@@ -66,6 +67,105 @@ export const Step3Report = ({ report }) => {
       "You struggled with several core concepts during this session. Take some time to review the fundamentals and try again when you feel ready.";
   }
 
+  const downloadPDF = () => {
+    const doc = new jsPDF("p", "mm", "a4");
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    const contentWidth = pageWidth - margin * 2;
+    let currentY = 25;
+
+    // Helper to check for page breaks
+    const checkPageBreak = (requiredSpace) => {
+      if (currentY + requiredSpace > 280) {
+        doc.addPage();
+        currentY = 20;
+      }
+    };
+
+    // ================== TITLE ==================
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.setTextColor(34, 197, 94); // Emerald Green
+    // Fixed the missing Y parameter and added center alignment
+    doc.text("AI Interview Performance Report", pageWidth / 2, currentY, { align: "center" });
+    currentY += 15;
+
+    // ================== OVERALL SCORE ==================
+    doc.setFontSize(14);
+    doc.setTextColor(55, 65, 81); // Gray-700
+    doc.text(`Overall Score: ${score}/10 - ${shortTagline}`, margin, currentY);
+    currentY += 10;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    doc.setTextColor(107, 114, 128); // Gray-500
+    
+    // Wrap long performance text
+    const splitPerformanceText = doc.splitTextToSize(performanceText, contentWidth);
+    doc.text(splitPerformanceText, margin, currentY);
+    currentY += (splitPerformanceText.length * 6) + 10;
+
+    // ================== SKILL EVALUATION ==================
+    checkPageBreak(30);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(55, 65, 81);
+    doc.text("Skill Evaluation", margin, currentY);
+    currentY += 8;
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(12);
+    skills.forEach(skill => {
+      doc.text(`• ${skill.label}: ${skill.value}/10`, margin + 5, currentY);
+      currentY += 7;
+    });
+    currentY += 10;
+
+    // ================== QUESTION BREAKDOWN ==================
+    checkPageBreak(20);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("Question Breakdown", margin, currentY);
+    currentY += 10;
+
+    // Map over original questionWiseScore (not the mapped chart data) 
+    // to ensure we have access to the full question and feedback strings.
+    questionWiseScore.forEach((q, index) => {
+      checkPageBreak(40); // Ensure enough space for at least the question block
+
+      // Question Header
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(12);
+      doc.setTextColor(34, 197, 94);
+      doc.text(`Question ${index + 1} (Score: ${q.score ?? 0}/10)`, margin, currentY);
+      currentY += 7;
+
+      // Question Text
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(55, 65, 81);
+      const questionText = q.question || "Question not available";
+      const splitQuestion = doc.splitTextToSize(`Q: ${questionText}`, contentWidth);
+      doc.text(splitQuestion, margin, currentY);
+      currentY += (splitQuestion.length * 6) + 3;
+
+      // AI Feedback Text
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.setTextColor(107, 114, 128);
+      const feedbackText = q.feedback && q.feedback.trim() !== "" ? q.feedback : "No feedback available for this question";
+      const splitFeedback = doc.splitTextToSize(`Feedback: ${feedbackText}`, contentWidth);
+      
+      // Secondary page break check specifically for long feedback
+      checkPageBreak(splitFeedback.length * 6);
+      
+      doc.text(splitFeedback, margin, currentY);
+      currentY += (splitFeedback.length * 6) + 12; // Extra padding between questions
+    });
+
+    // ================== SAVE ==================
+    doc.save("Interview-Performance-Report.pdf");
+  };
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-green-50 px-4 sm:px-6 lg:px-10 py-8">
       {/* HEADER SECTION */}
@@ -87,7 +187,10 @@ export const Step3Report = ({ report }) => {
           </div>
         </div>
 
-        <button className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl shadow-md transition-all duration-300 font-semibold text-sm sm:text-base whitespace-nowrap">
+        <button 
+        onClick={downloadPDF}
+        className="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl shadow-md transition-all 
+        duration-300 font-semibold text-sm sm:text-base whitespace-nowrap">
           Download PDF
         </button>
       </div>
@@ -198,7 +301,7 @@ export const Step3Report = ({ report }) => {
               Quesiton Breakdown
             </h3>
             <div className="space-y-6">
-              {questionScoreData.map((q, i) => (
+              {questionWiseScore.map((q, i) => (
                 <div
                   key={i}
                   className="bg-gray-50 p-4 sm:p-6 rounded-xl sm:rounded-2xl border border-gray-200"
@@ -214,6 +317,17 @@ export const Step3Report = ({ report }) => {
                     <div className="bg-green-100 text-green-600 px-3 py-1 rounded-full font-bold text-xs sm:text-sm w-fit ">
                       {q.score ?? 0 } /10
                     </div>
+                  </div>
+
+                  <div className="bg-green-50 border border-green-200 p-4 rounded-lg ">
+                    <p className="text-xs text-green-600 font-semibold mb-1">AI Feedback </p>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {q.feedback && q.feedback.trim() !== ""
+                        ?q.feedback
+                        : "No feedback available for this question "
+                      }
+                    </p>
+
                   </div>
                 </div>
               ))}
