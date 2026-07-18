@@ -31,7 +31,7 @@ const App = () => {
       }
     };
 
-    getUser(); // <-- FIX: Calling the function so it actually runs on refresh!
+    getUser();
     
   }, [dispatch]);
 
